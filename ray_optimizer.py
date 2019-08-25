@@ -1,8 +1,20 @@
 from functools import reduce
 from copy import deepcopy
-'''See equation (18) in Section 3.1 in "Diagonal preconditioning for first order
-primal-dual algorithms in convex optimization" by Pock & Chambolle for
-details on primal-dual optimization. We use alpha = 1 in equation (10).
+'''This code implements two modes of ray potentials from our paper
+https://arxiv.org/pdf/1604.02885.pdf: convex and nonconvex.
+
+As our simple example in Section A.5 shows, the convex mode fails even
+in very simple cases, taking all-0.5 solution which is impossible to round
+to a proper close-to-binary solution. Nonconvex mode adds
+a special constraint: y_occ_i <= max(0, y_free_i-1 + x_occ_i - 1.0) -- see
+equation (10) in our paper. We call it visibility consistency constraint.
+It prevents the algorithm from taking a bad solution.
+
+In the code below we use a first-order primal-dual optimization algorithm to
+optimize ray potentials.
+For details on this algorithm, see equation (18) in Section 3.1 in
+"Diagonal preconditioning for first order primal-dual algorithms
+in convex optimization" by Pock & Chambolle. We use alpha = 1 in equation (10).
 Basically, update to each variable x_i needs to be normalized by absolute
 sum of coefficients in K for terms in <Kx, y> where x_i appears.
 Extra primal variables (2 * x_k+1 - x_k) are used for updating
