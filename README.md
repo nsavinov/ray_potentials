@@ -5,7 +5,7 @@
 ¹ETH Zurich <br/>
 
 <p align="center">
-  <img src="misc/thin_road_sign.png" width="480">
+  <img src="misc/thin_road_sign.png" width="1024">
 </p>
 
 This is Python implementation of our [CVPR 2016 paper on Ray Potentials](https://arxiv.org/abs/1604.02885).
