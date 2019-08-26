@@ -8,7 +8,7 @@
   <img src="misc/thin_road_sign.png" width="1024">
 </p>
 
-This is Python implementation of the optimization from our [CVPR 2016 paper on Ray Potentials](https://arxiv.org/abs/1604.02885).
+This is a Python implementation of the optimization algorithm from our [CVPR 2016 paper on Ray Potentials](https://arxiv.org/abs/1604.02885).
 If you use this work, please cite:
 
     @inproceedings{savinov2016ray,
