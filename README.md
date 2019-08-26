@@ -60,6 +60,10 @@ python3 run.py
 ```
 ### Demo results interpretation
 
+<p align="center">
+  <img src="misc/simple_example.png" width="640">
+</p>
+
 For this simple one-ray example, the best solution (as occupancy indicators) would be [0.0, 1.0, whatever]. This solution is printed under "Desired occupancy indicators". Here value 0 means free, value 1 means occupied. So the best solution is to leave the first volumetric cell along the ray free and occupy the second cell. The third cell is thus completely occluded and it does not matter what value it takes. The cost of this solution is -3.
 
 The result of ray potential optimization is shown under "Final occupancy indicators". If you choose the convex mode, what you get is an in-between solution: [0.5, 0.5, >= 0.5]. This is a bad solution: the algorithm does not put the surface anywhere in particular, but rather partially profits from costs everywhere. The cost of this solution is -3.5 and it is better than the cost of the optimal solution above. To cut out this in-between solution, we propose to use a Visibility Consistency constraint. If you enable this mode (nonconvex), you will get the correct solution [0.0, 1.0, whatever].
