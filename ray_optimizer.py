@@ -6,7 +6,13 @@ in very simple cases, taking all-0.5 solution which is impossible to round
 to a proper close-to-binary solution. Nonconvex mode adds
 a special constraint: y_occ_i <= max(0, y_free_i-1 + x_occ_i - 1.0) -- see
 equation (10) in our paper. We call it a visibility consistency constraint.
-It prevents the algorithm from taking a bad solution.
+It prevents the algorithm from taking a bad solution. At every optimization
+step, we take the active branch of this constraint -- thus essentially
+implementing an approximate majorize-minimize optimization strategy
+(the exact majorize-minimize would mean that we estimate what branches are
+ active at some point, then optimize to convergence, and only then
+ re-estimate what branches are active again). Empirically, this approximate
+strategy works well.
 
 In the code below we use a first-order primal-dual optimization algorithm to
 optimize ray potentials.
@@ -89,21 +95,21 @@ class RayOptimizer:
         # costs
         self.dy_occ[ray_ind][ray_pos] += self.ray_costs_occ[ray_ind][ray_pos]
         if ray_pos >= 1:
-          # y_occ_y_free
+          # y_occ_y_free constraint
           self.dy_occ[ray_ind][ray_pos] += (
               self.dual_y_occ_y_free[ray_ind][ray_pos])
           self.pc_y_occ[ray_ind][ray_pos] += 1.0
           self.dy_free[ray_ind][ray_pos - 1] -= (
               self.dual_y_occ_y_free[ray_ind][ray_pos])
           self.pc_y_free[ray_ind][ray_pos - 1] += 1.0
-          # y_free_y_free
+          # y_free_y_free constraint
           self.dy_free[ray_ind][ray_pos] += (
               self.dual_y_free_y_free[ray_ind][ray_pos])
           self.pc_y_free[ray_ind][ray_pos] += 1.0
           self.dy_free[ray_ind][ray_pos - 1] -= (
               self.dual_y_free_y_free[ray_ind][ray_pos])
           self.pc_y_free[ray_ind][ray_pos - 1] += 1.0
-          # visibility consistency
+          # visibility consistency constraint
           if self.nonconvex:
             linear_branch = (self.y_free[ray_ind][ray_pos - 1] +
                              self.x_occ[cell] - 1.0)
@@ -117,12 +123,12 @@ class RayOptimizer:
               self.dx_occ[cell] -= (
                   self.dual_vis_con[ray_ind][ray_pos])
               self.pc_x_occ[cell] += 1.0
-        # y_occ_x_occ
+        # y_occ_x_occ constraint
         self.dy_occ[ray_ind][ray_pos] += self.dual_y_occ_x_occ[ray_ind][ray_pos]
         self.pc_y_occ[ray_ind][ray_pos] += 1.0
         self.dx_occ[cell] -= self.dual_y_occ_x_occ[ray_ind][ray_pos]
         self.pc_x_occ[cell] += 1.0
-        # y_free_x_occ
+        # y_free_x_occ constraint
         self.dy_free[ray_ind][ray_pos] += (
             self.dual_y_free_x_occ[ray_ind][ray_pos])
         self.pc_y_free[ray_ind][ray_pos] += 1.0
@@ -144,6 +150,7 @@ class RayOptimizer:
         self.dy_free[ray_ind][ray_pos] /= max(1.0,
                                               self.pc_y_free[ray_ind][ray_pos])
     for cell in range(self.n_cells):
+      # avoid division by 0, could happen if no ray hits the cell
       self.dx_occ[cell] /= max(1.0, self.pc_x_occ[cell])
 
   def backup_primal(self):
@@ -197,7 +204,7 @@ class RayOptimizer:
           if self.nonconvex:
             linear_branch = (self.y_free[ray_ind][ray_pos - 1] +
                              self.x_occ[cell] - 1.0)
-            if linear_branch > 0:
+            if linear_branch > 0: # re-majorize at every step
               self.dual_vis_con[ray_ind][ray_pos] += (
                   self.extra_y_occ[ray_ind][ray_pos] -
                   self.extra_y_free[ray_ind][ray_pos - 1] -
