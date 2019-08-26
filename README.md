@@ -54,7 +54,7 @@ The code above specifies the task from Section A.5 which is a simple one-ray exa
 
 ### Demo
 
-To run the code, type:
+To run the code:
 ```Shell
 python3 run.py
 ```
