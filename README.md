@@ -33,9 +33,11 @@ It is not a complete implementation of a 3D reconstruction pipeline! To make it 
 
 ### Task format
 
-Here is how you can specify your own task in the code (see run.py):
+Here is how you can specify your own task in the code (see tasks.py):
 ```Python
 def create_task_from_section_a5(task_type):
+  # Cell numbering: [[[0, 1, 2]]]
+  # Desired solution: [[[0, 1, whatever]]]
   grid_sizes = [1, 1, 3] # 1D example represented in 3D for generality
   rays = [[0, 1, 2]] # linear indices of grid cells are listed for each ray
   gradient_step_size = 1.0 # implicitly specified via cost magnitudes
