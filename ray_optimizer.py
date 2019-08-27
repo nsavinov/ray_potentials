@@ -27,6 +27,7 @@ dual variables.'''
 
 from functools import reduce
 from copy import deepcopy
+import random
 
 
 class RayOptimizer:
@@ -59,11 +60,14 @@ class RayOptimizer:
   def get_zeros_all_cells(self):
     return [0.0] * self.n_cells
 
+  def get_random_all_cells(self):
+    return [random.random() for _ in range(self.n_cells)]
+
   def init_variables(self):
     # primal variables
     self.y_occ = self.get_zeros_along_rays()
     self.y_free = self.get_ones_along_rays()
-    self.x_occ = self.get_zeros_all_cells()
+    self.x_occ = self.get_random_all_cells()
     # extra primal variables
     self.extra_y_occ = deepcopy(self.y_occ)
     self.extra_y_free = deepcopy(self.y_free)
@@ -220,6 +224,15 @@ class RayOptimizer:
             self.extra_x_occ[cell] - 1.0) / 2.0
     self.clamp_duals()
 
+  def get_cost(self):
+    cost = 0.0
+    for ray_ind, ray in enumerate(self.rays):
+      for ray_pos, cell in enumerate(ray):
+        cost += (self.ray_costs_occ[ray_ind][ray_pos] *
+                 self.y_occ[ray_ind][ray_pos])
+      cost += self.ray_costs_free[ray_ind] * self.y_free[ray_ind][-1]
+    return cost
+
   def clamp_duals(self):
     for ray_ind, ray in enumerate(self.rays):
       for ray_pos, cell in enumerate(ray):
@@ -239,6 +252,7 @@ class RayOptimizer:
     return self.x_occ
 
   def print_state(self):
+    self.print_cost()
     self.print_primal()
     self.print_dual()
 
@@ -254,3 +268,6 @@ class RayOptimizer:
     print('dual_y_free_x_occ:\n', self.dual_y_free_x_occ)
     if self.nonconvex:
       print('dual_vis_con:\n', self.dual_vis_con)
+
+  def print_cost(self):
+    print('cost:\n', self.get_cost())
